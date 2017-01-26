@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public class ReferenceQueriable<T> implements Queriable<T> {
@@ -18,6 +20,10 @@ public class ReferenceQueriable<T> implements Queriable<T> {
 
     public ReferenceQueriable(T[] array) {
         backingList = new ArrayList<>(Arrays.asList(array));
+    }
+
+    public ReferenceQueriable(List<T> list) {
+        backingList = list;
     }
 
     @Override
@@ -38,16 +44,21 @@ public class ReferenceQueriable<T> implements Queriable<T> {
     }
 
     @Override
-    public Queriable<T> join(Queriable<? super T> queriable, Predicate<? super T> predicate) {
+    public Queriable<T> join(Queriable<? super T> queriable, BiPredicate<T, ? super T> predicate) {
         if (predicate == null) throw new IllegalArgumentException();
+
+        List<T> list = new ArrayList<>();
 
         for(T item : this.backingList) {
             for (Object joinable : queriable) {
-                
+                boolean result = predicate.test(item, (T)joinable);
+                if (result) {
+                    list.add(item);
+                }
             }
         }
 
-        return null;
+        return new ReferenceQueriable<>(list);
     }
 
     @Override
